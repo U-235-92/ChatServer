@@ -69,67 +69,107 @@ public class Server {
         handlers.remove(handler);
     }
 
-    public void sendData(String data) {
-        //отправить заинтересованным пользователям
-        if(data.startsWith(ServerHandler.PERSONAL_MESSAGE_COMMAND)) {
-            String tmp = data.substring(ServerHandler.PERSONAL_MESSAGE_COMMAND.length()).trim();
-            String[] messageParts = tmp.trim().split("\s");
-            String sender = messageParts[0];
-            String date = messageParts[1];
-            String receiversString = messageParts[3];
-            String message = messageParts[4];
-            String[] receivers = receiversString.split("#");
-            for(ServerHandler handler : handlers) {
-                for(String receiver : receivers) {
-                    if(authenticationService.isExistUser(receiver)) {
-                        if(isUserConnected(new User(receiver, ""))) {
-                            if(handler.getUser().getLogin().equals(receiver) ||
-                                    handler.getUser().getLogin().equals(sender)) {
-                                try {
-                                    String toSend = sender + " " + date + " " + message;
-                                    handler.sendData(toSend);
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        } else {
-                            if(handler.getUser().getLogin().equals(sender)) {
-                                try {
-                                    handler.sendData("User with login " + receiver + " is disconnected");
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        }
-                    } else {
-                        if(handler.getUser().getLogin().equals(sender)) {
-                            try {
-                                handler.sendData("User with login " + receiver + " isn't exist");
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                    }
-                }
-            }
+    public void send(String data) {
+        if(isPersonalMessage(data)) {
+            String[] dataParts = getDataParts(data);
+            String sender = getSenderMessage(dataParts);
+            String date = getDateMessage(dataParts);
+            String textMessage = getTextMessage(dataParts);
+            String[] receivers = getReceiversMessage(dataParts);
+            processSendPersonalMessage(sender, date, textMessage, receivers);
         } else {
-            for(ServerHandler handler : handlers) {
-                try {
-                    handler.sendData(data);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+            processSendCommonMessage(data);
+        }
+    }
+
+    private String getSenderMessage(String[] dataParts) {
+        return dataParts[0];
+    }
+
+    private String getDateMessage(String[] dataParts) {
+        return dataParts[1];
+    }
+
+    private String getTextMessage(String[] dataParts) {
+        return dataParts[4];
+    }
+
+    private String[] getReceiversMessage(String[] dataParts) {
+        String receivers = dataParts[3];
+        return receivers.split("#");
+    }
+
+    private void processSendPersonalMessage(String sender, String dateMessage, String textMessage, String[] receivers) {
+        for(ServerHandler handler : handlers) {
+            for(String receiver : receivers) {
+                if(authenticationService.isExistUser(receiver)) {
+                    if(isUserConnected(new User(receiver, ""))) {
+                        sendPersonalMessageIfReceiverConnected(handler, sender, receiver, dateMessage, textMessage);
+                    } else {
+                        sendPersonalMessageIfReceiverDisconnected(handler, sender, receiver);
+                    }
+                } else {
+                    sendPersonalMessageIfReceiverIsNotExist(handler, sender, receiver);
                 }
             }
         }
     }
 
-    public boolean hasConnectedUsers() {
-        return handlers.size() > 0;
+    private void sendPersonalMessageIfReceiverConnected(ServerHandler handler, String sender, String receiver,
+                                                        String dateMessage, String textMessage) {
+        if(handler.getUser().getLogin().equals(receiver) ||
+                handler.getUser().getLogin().equals(sender)) {
+            try {
+                String toSend = sender + " " + dateMessage + " " + textMessage;
+                handler.sendData(toSend);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void sendPersonalMessageIfReceiverDisconnected(ServerHandler handler, String sender, String receiver) {
+        if(handler.getUser().getLogin().equals(sender)) {
+            try {
+                handler.sendData("User with login " + receiver + " is disconnected");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void sendPersonalMessageIfReceiverIsNotExist(ServerHandler handler, String sender, String receiver) {
+        if(handler.getUser().getLogin().equals(sender)) {
+            try {
+                handler.sendData("User with login " + receiver + " isn't exist");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void processSendCommonMessage(String data) {
+        for(ServerHandler handler : handlers) {
+            try {
+                handler.sendData(data);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private boolean isPersonalMessage(String message) {
+        return message.startsWith(ServerHandler.PERSONAL_MESSAGE_COMMAND);
+    }
+
+    private String[] getDataParts(String data) {
+        String tmp = data.substring(ServerHandler.PERSONAL_MESSAGE_COMMAND.length()).trim();
+        String[] dataParts = tmp.trim().split("\s");
+        return dataParts;
     }
 
     public void receiveData(String data) {
-        //обработать сообщение
-        sendData(data);
+        send(data);
     }
 
     public AuthenticationService getAuthenticationService() {

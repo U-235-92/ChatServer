@@ -11,15 +11,14 @@ import java.net.Socket;
 
 public class ServerHandler {
 
-    public static final String SPACE = " ";
+    public static final String SPACE_SYMBOL = " ";
     public static final String LOG_IN_COMMAND = "//log";
-    public static final String ERR_COMMAND = "//err";
-    public static final String MESSAGE_COMMAND = "//message";
     public static final String CONNECT_COMMAND = "//connected";
     public static final String SUCCESS_CONNECT_COMMAND = "//success";
     public static final String LOGIN_COMMAND = "//login";
     public static final String PERSONAL_MESSAGE_COMMAND = "//personal";
-
+    public static final String LOG_ERROR_MESSAGE = "<---Log error--->";
+    public static final String SUCCESS_CONNECTION_MESSAGE = "<---Success, you're joined!--->";
     private Socket clientSocket;
     private Server server;
     private DataInputStream inputStream;
@@ -51,7 +50,7 @@ public class ServerHandler {
         while(true) {
             String[] logParts = getLoginAndPassword();
             if(logParts == null || logParts.length == 0) {
-                sendData("<---Log error--->");
+                sendData(LOG_ERROR_MESSAGE);
                 continue;
             } else if(logParts.length == 1) {
                 String login = logParts[0];
@@ -79,7 +78,7 @@ public class ServerHandler {
         }
         if(data.startsWith(LOG_IN_COMMAND)) {
             data = data.substring(LOG_IN_COMMAND.length());
-            parts = data.trim().split(SPACE);
+            parts = data.trim().split(SPACE_SYMBOL);
             if (parts.length > 2) {
                 return null;
             } else {
@@ -104,7 +103,7 @@ public class ServerHandler {
                 return false;
             } else {
                 server.addHandler(this);
-                sendData("<---Success, you're joined!--->");
+                sendData(SUCCESS_CONNECTION_MESSAGE);
                 sendData(SUCCESS_CONNECT_COMMAND);
                 return true;
             }
