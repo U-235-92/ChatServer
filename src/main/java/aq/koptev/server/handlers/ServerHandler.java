@@ -12,7 +12,7 @@ import java.net.Socket;
 public class ServerHandler {
 
     public static final String SPACE_SYMBOL = " ";
-    public static final String LOG_IN_COMMAND = "//log";
+    public static final String AUTHORIZE_COMMAND = "//log";
     public static final String CONNECT_COMMAND = "//connected";
     public static final String SUCCESS_CONNECT_COMMAND = "//success";
     public static final String LOGIN_COMMAND = "//login";
@@ -76,8 +76,8 @@ public class ServerHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if(data.startsWith(LOG_IN_COMMAND)) {
-            data = data.substring(LOG_IN_COMMAND.length());
+        if(data.startsWith(AUTHORIZE_COMMAND)) {
+            data = data.substring(AUTHORIZE_COMMAND.length());
             parts = data.trim().split(SPACE_SYMBOL);
             if (parts.length > 2) {
                 return null;
