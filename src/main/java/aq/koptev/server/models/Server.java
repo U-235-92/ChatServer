@@ -82,6 +82,12 @@ public class Server {
         }
     }
 
+    private String[] getDataParts(String data) {
+        String tmp = data.substring(ServerHandler.PERSONAL_MESSAGE_COMMAND.length()).trim();
+        String[] dataParts = tmp.trim().split("\s");
+        return dataParts;
+    }
+
     private String getSenderMessage(String[] dataParts) {
         return dataParts[0];
     }
@@ -91,7 +97,11 @@ public class Server {
     }
 
     private String getTextMessage(String[] dataParts) {
-        return dataParts[4];
+        String textMessage = "";
+        for(int i  = 4; i < dataParts.length; i++) {
+            textMessage += dataParts[i] + " ";
+        }
+        return textMessage.trim();
     }
 
     private String[] getReceiversMessage(String[] dataParts) {
@@ -160,12 +170,6 @@ public class Server {
 
     private boolean isPersonalMessage(String message) {
         return message.startsWith(ServerHandler.PERSONAL_MESSAGE_COMMAND);
-    }
-
-    private String[] getDataParts(String data) {
-        String tmp = data.substring(ServerHandler.PERSONAL_MESSAGE_COMMAND.length()).trim();
-        String[] dataParts = tmp.trim().split("\s");
-        return dataParts;
     }
 
     public void receiveData(String data) {
