@@ -104,7 +104,6 @@ public class ServerHandler {
             } else {
                 server.addHandler(this);
                 sendData(SUCCESS_CONNECTION_MESSAGE);
-                sendData(SUCCESS_CONNECT_COMMAND);
                 return true;
             }
         }
