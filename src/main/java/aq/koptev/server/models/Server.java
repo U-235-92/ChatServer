@@ -86,6 +86,7 @@ public class Server {
         String tmp = data.substring(ServerHandler.PERSONAL_MESSAGE_COMMAND.length()).trim();
         String[] dataParts = tmp.trim().split("\s");
         return dataParts;
+
     }
 
     private String getSenderMessage(String[] dataParts) {
