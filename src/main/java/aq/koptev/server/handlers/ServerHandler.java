@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class ServerHandler {
-    public static final String AUTHORIZE_COMMAND = "#l";
+    public static final String AUTHENTICATION_COMMAND = "#l";
     public static final String REGISTRATION_COMMAND = "#r";
     public static final String COMMON_MESSAGE_COMMAND = "#a";
     public static final String PRIVATE_MESSAGE_COMMAND = "#p";
@@ -72,7 +72,7 @@ public class ServerHandler {
             }
             String command = message.split("\\s+", 2)[0];
             switch (command) {
-                case AUTHORIZE_COMMAND:
+                case AUTHENTICATION_COMMAND:
                     String dataAuthentication = message.split("\\s+")[1];
                     isProcessSuccess = processAuthentication(dataAuthentication);
                     break;
