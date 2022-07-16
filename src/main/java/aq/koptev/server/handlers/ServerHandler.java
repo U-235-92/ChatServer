@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class ServerHandler {
-
-    public static final String SPACE_SYMBOL = " ";
     public static final String AUTHORIZE_COMMAND = "#l";
     public static final String REGISTRATION_COMMAND = "#r";
     public static final String COMMON_MESSAGE_COMMAND = "#a";
@@ -21,18 +19,7 @@ public class ServerHandler {
     public static final String CONNECT_COMMAND = "#c";
     public static final String DISCONNECT_COMMAND = "#dc";
     public static final String SERVER_COMMAND = "#scom";
-
-
-
-
-
-
-//    public static final String CONNECT_COMMAND = "//connected";
-    public static final String SUCCESS_CONNECT_COMMAND = "//success";
-    public static final String LOGIN_COMMAND = "//login";
-    public static final String PERSONAL_MESSAGE_COMMAND = "//personal";
-    public static final String LOG_ERROR_MESSAGE = "<---Log error--->";
-    public static final String SUCCESS_CONNECTION_MESSAGE = "<---Success, you're joined!--->";
+    public static final String PRIVATE_SERVER_MESSAGE = "#psm";
     private Socket clientSocket;
     private Server server;
     private DataInputStream inputStream;
@@ -57,7 +44,11 @@ public class ServerHandler {
                 waitMessage();
             } catch (IOException e) {
                 server.sendServerMessage(this, "Пользователь " + user.getLogin() + " покинул чат");
-                server.removeHandler(this);
+                try {
+                    server.removeHandler(this);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
                 e.printStackTrace();
             }
         });
@@ -87,7 +78,6 @@ public class ServerHandler {
                     isProcessSuccess = processAuthentication(dataAuthentication);
                     break;
                 case REGISTRATION_COMMAND:
-                    //процесс регистрации
                     String dataRegistration = message.split("\\s+")[1];
                     isProcessSuccess = processRegistration(dataRegistration);
                     break;
@@ -156,115 +146,15 @@ public class ServerHandler {
                     sender = message.split("\\s+", 3)[1];
                     textMessage = message.split("\\s+", 3)[2];
                     server.sendCommonMessage(sender, textMessage);
-                    //общее сообщение
                     break;
                 case PRIVATE_MESSAGE_COMMAND:
                     sender = message.split("\\s+", 3)[1];
                     receiver = message.split("\\s+", 3)[2];
                     textMessage = message.split("\\s+", 4)[3];
                     server.sendPrivateMessage(sender, receiver, textMessage);
-                    //личное сообщение
                     break;
             }
         }
-    }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//    public void handle() {
-//        Thread thread = new Thread(() -> {
-//            try {
-//                authorizeProcess();
-//                sendConnectedLogin();
-//                sendConnectedUsers();
-//                receiveData();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        });
-//        thread.start();
-//    }
-
-    private void authorizeProcess() throws IOException {
-        while(true) {
-            String[] logParts = getLoginAndPassword();
-            if(logParts == null || logParts.length == 0) {
-                sendData(LOG_ERROR_MESSAGE);
-                continue;
-            } else if(logParts.length == 1) {
-                String login = logParts[0];
-                if(isAuthenticationSuccess(login, "")) {
-                    break;
-                }
-            } else {
-                String login = logParts[0];
-                String password = logParts[1];
-                if(isAuthenticationSuccess(login, password)) {
-                    break;
-                }
-            }
-        }
-    }
-
-    private String[] getLoginAndPassword() {
-        String[] parts;
-        String data = "";
-        try {
-            data = inputStream.readUTF().trim();
-            System.out.println(data);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if(data.startsWith(AUTHORIZE_COMMAND)) {
-            data = data.substring(AUTHORIZE_COMMAND.length());
-            parts = data.trim().split(SPACE_SYMBOL);
-            if (parts.length > 2) {
-                return null;
-            } else {
-                return parts;
-            }
-        } else {
-            return null;
-        }
-    }
-
-//    private boolean isAuthenticationSuccess(String login, String password) throws IOException {
-//        AuthenticationService authenticationService = server.getAuthenticationService();
-//        user = authenticationService.getAuthenticatedUser(login, password);
-//        if(user == null) {
-//            String message = authenticationService.getErrorAuthenticationMessage(password);
-//            sendData(message);
-//            return false;
-//        } else {
-//            if(server.isUserConnected(user)) {
-//                String message = "<---User with login " + user.getLogin() + " is authorized--->";
-//                sendData(message);
-//                return false;
-//            } else {
-//                server.addHandler(this);
-//                sendData(SUCCESS_CONNECTION_MESSAGE);
-//                return true;
-//            }
-//        }
-//    }
-
-    private void sendConnectedLogin() throws IOException {
-        sendData(LOGIN_COMMAND + user.getLogin());
-    }
-
-    private void sendConnectedUsers() throws IOException {
-        String users = server.getConnectedUsers();
-        String data = CONNECT_COMMAND + users;
-        server.sendAuthenticationUsersData(data);
-    }
-
-    private void receiveData() throws IOException {
-        while(true) {
-            String data = inputStream.readUTF();
-            server.receiveData(data);
-        }
-    }
-
-    public void sendData(String data) throws IOException {
-        outputStream.writeUTF(data);
     }
 
     public User getUser() {
