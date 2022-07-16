@@ -69,6 +69,37 @@ public class Server {
         handlers.remove(handler);
     }
 
+    public synchronized void sendCommonMessage(String sender, String message) {
+        for(ServerHandler handler : handlers) {
+            try {
+                handler.sendMessage(ServerHandler.COMMON_MESSAGE_COMMAND, sender, message);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public synchronized void sendPrivateMessage(String sender, String receiver, String message) {
+        for(ServerHandler handler : handlers) {
+
+        }
+    }
+
+    public synchronized void sendServerMessage(ServerHandler handler, String message) {
+        for(ServerHandler serverHandler : handlers) {
+            if(serverHandler == handler) {
+                continue;
+            }
+            try {
+                serverHandler.sendMessage(ServerHandler.SERVER_COMMAND, message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     public void send(String data) {
         if(isPersonalMessage(data)) {
             String[] dataParts = getDataParts(data);
