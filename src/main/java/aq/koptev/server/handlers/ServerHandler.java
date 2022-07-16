@@ -16,9 +16,8 @@ public class ServerHandler {
     public static final String PRIVATE_MESSAGE_COMMAND = "#p";
     public static final String ERROR_AUTHENTICATION_COMMAND = "#errauth";
     public static final String OK_AUTHENTICATION_COMMAND = "#okauth";
-    public static final String CONNECT_COMMAND = "#c";
-    public static final String DISCONNECT_COMMAND = "#dc";
-    public static final String SERVER_COMMAND = "#scom";
+    public static final String USER_CONNECT_COMMAND = "#c";
+    public static final String USER_DISCONNECT_COMMAND = "#dc";
     public static final String PRIVATE_SERVER_MESSAGE = "#psm";
     private Socket clientSocket;
     private Server server;
@@ -43,7 +42,7 @@ public class ServerHandler {
                 waitAuthentication();
                 waitMessage();
             } catch (IOException e) {
-                server.sendServerMessage(this, "Пользователь " + user.getLogin() + " покинул чат");
+                server.sendServerMessageOnDisconnectedUser(this);
                 try {
                     server.removeHandler(this);
                 } catch (IOException ex) {
@@ -119,8 +118,8 @@ public class ServerHandler {
                 sendMessage(ERROR_AUTHENTICATION_COMMAND, errorAuthenticationMessage);
                 return false;
             } else {
-                server.sendServerMessage(this, "Пользователь " + user.getLogin() + " вошел в чат");
                 server.addHandler(this);
+                server.sendServerMessageOnConnectedUser(this);
                 sendMessage(OK_AUTHENTICATION_COMMAND, login);
                 return true;
             }

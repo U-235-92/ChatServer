@@ -135,13 +135,28 @@ public class Server {
         return false;
     }
 
-    public synchronized void sendServerMessage(ServerHandler handler, String message) {
+    public synchronized void sendServerMessageOnConnectedUser(ServerHandler handler) {
         for(ServerHandler serverHandler : handlers) {
             if(serverHandler == handler) {
                 continue;
             }
             try {
-                serverHandler.sendMessage(ServerHandler.SERVER_COMMAND, message);
+                String message = String.format("Пользователь %s вошел в чат", handler.getUser().getLogin());
+                serverHandler.sendMessage(ServerHandler.USER_CONNECT_COMMAND, message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public synchronized void sendServerMessageOnDisconnectedUser(ServerHandler handler) {
+        for(ServerHandler serverHandler : handlers) {
+            if(serverHandler == handler) {
+                continue;
+            }
+            try {
+                String message = String.format("Пользователь %s покинул чат", handler.getUser().getLogin());
+                serverHandler.sendMessage(ServerHandler.USER_DISCONNECT_COMMAND, message);
             } catch (IOException e) {
                 e.printStackTrace();
             }
