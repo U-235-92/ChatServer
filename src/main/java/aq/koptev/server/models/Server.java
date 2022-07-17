@@ -68,6 +68,7 @@ public class Server {
     public synchronized void removeHandler(ServerHandler handler) throws IOException {
         handler.closeConnection();
         handlers.remove(handler);
+        getConnectedUsers();
     }
 
     public synchronized void sendCommonMessage(String sender, String message) {

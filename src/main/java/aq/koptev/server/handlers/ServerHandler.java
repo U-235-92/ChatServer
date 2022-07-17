@@ -124,7 +124,6 @@ public class ServerHandler {
                 server.addHandler(this);
                 sendMessage(OK_AUTHENTICATION_COMMAND, login);
                 server.sendServerMessageOnConnectedUser(this);
-//                server.getConnectedUsers();
                 return true;
             }
         }
@@ -160,13 +159,10 @@ public class ServerHandler {
                     break;
                 case PRIVATE_MESSAGE_COMMAND:
                     sender = message.split("\\s+", 3)[1];
-                    receiver = message.split("\\s+", 3)[2];
+                    receiver = message.split("\\s+", 3)[2].split("\\s+", 2)[0];
                     textMessage = message.split("\\s+", 4)[3];
                     server.sendPrivateMessage(sender, receiver, textMessage);
                     break;
-//                case CONNECTED_USERS_REQUEST:
-//                    server.getConnectedUsers();
-//                    break;
             }
         }
     }
