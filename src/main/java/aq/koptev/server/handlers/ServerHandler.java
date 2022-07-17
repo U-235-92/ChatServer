@@ -19,6 +19,7 @@ public class ServerHandler {
     public static final String USER_CONNECT_COMMAND = "#c";
     public static final String USER_DISCONNECT_COMMAND = "#dc";
     public static final String PRIVATE_SERVER_MESSAGE = "#psm";
+    public static final String CONNECTED_USERS_REQUEST = "#reqcu";
     private Socket clientSocket;
     private Server server;
     private DataInputStream inputStream;
@@ -39,7 +40,9 @@ public class ServerHandler {
     public void handle() {
         Thread thread = new Thread(() -> {
             try {
-                waitAuthentication();
+                authenticationProcess();
+                sendLoginUser();
+                sendConnectedUsers();
                 waitMessage();
             } catch (IOException e) {
                 server.sendServerMessageOnDisconnectedUser(this);
@@ -62,18 +65,18 @@ public class ServerHandler {
         outputStream.writeUTF(String.format("%s %s %s", command, sender, message));
     }
 
-    private void waitAuthentication() throws IOException {
+    private void authenticationProcess() throws IOException {
         boolean isProcessSuccess = false;
         while(!isProcessSuccess) {
             String message = inputStream.readUTF();
             if(!message.startsWith("#")) {
-                System.out.println("Неверная команда");
+                System.out.println("Bad command");
                 continue;
             }
             String command = message.split("\\s+", 2)[0];
             switch (command) {
                 case AUTHENTICATION_COMMAND:
-                    String dataAuthentication = message.split("\\s+")[1];
+                    String dataAuthentication = message.split("\\s+", 2)[1];
                     isProcessSuccess = processAuthentication(dataAuthentication);
                     break;
                 case REGISTRATION_COMMAND:
@@ -119,11 +122,20 @@ public class ServerHandler {
                 return false;
             } else {
                 server.addHandler(this);
-                server.sendServerMessageOnConnectedUser(this);
                 sendMessage(OK_AUTHENTICATION_COMMAND, login);
+                server.sendServerMessageOnConnectedUser(this);
+//                server.getConnectedUsers();
                 return true;
             }
         }
+    }
+
+    private void sendLoginUser() throws IOException {
+        sendMessage(OK_AUTHENTICATION_COMMAND, user.getLogin());
+    }
+
+    private void sendConnectedUsers() {
+        server.getConnectedUsers();
     }
 
     private boolean processRegistration(String dataRegistration) {
@@ -134,7 +146,7 @@ public class ServerHandler {
         while(true) {
             String message = inputStream.readUTF();
             if(!message.startsWith("#")) {
-                System.out.println("Неверная команда");
+                System.out.println("Bad command");
             }
             String command = message.split("\\s+", 2)[0];
             String sender = "";
@@ -152,6 +164,9 @@ public class ServerHandler {
                     textMessage = message.split("\\s+", 4)[3];
                     server.sendPrivateMessage(sender, receiver, textMessage);
                     break;
+//                case CONNECTED_USERS_REQUEST:
+//                    server.getConnectedUsers();
+//                    break;
             }
         }
     }

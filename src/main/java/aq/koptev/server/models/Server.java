@@ -163,6 +163,20 @@ public class Server {
         }
     }
 
+    public void getConnectedUsers() {
+        String users = "";
+        for(ServerHandler handler : handlers) {
+            users += String.format("%s ", handler.getUser().getLogin());
+        }
+        for(ServerHandler handler : handlers) {
+            try {
+                handler.sendMessage(ServerHandler.CONNECTED_USERS_REQUEST, users);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     public AuthenticationService getAuthenticationService() {
         return authenticationService;
     }
