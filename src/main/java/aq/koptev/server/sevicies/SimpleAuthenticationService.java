@@ -58,4 +58,9 @@ public class SimpleAuthenticationService implements AuthenticationService {
             }
         }
     }
+
+    @Override
+    public void addUser(User user) {
+        users.add(user);
+    }
 }

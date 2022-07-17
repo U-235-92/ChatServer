@@ -16,6 +16,8 @@ public class ServerHandler {
     public static final String PRIVATE_MESSAGE_COMMAND = "#p";
     public static final String ERROR_AUTHENTICATION_COMMAND = "#errauth";
     public static final String OK_AUTHENTICATION_COMMAND = "#okauth";
+    public static final String ERROR_REGISTRATION_COMMAND = "#errreg";
+    public static final String OK_REGISTRATION_COMMAND = "#okreg";
     public static final String USER_CONNECT_COMMAND = "#c";
     public static final String USER_DISCONNECT_COMMAND = "#dc";
     public static final String PRIVATE_SERVER_MESSAGE = "#psm";
@@ -80,8 +82,8 @@ public class ServerHandler {
                     isProcessSuccess = processAuthentication(dataAuthentication);
                     break;
                 case REGISTRATION_COMMAND:
-                    String dataRegistration = message.split("\\s+")[1];
-                    isProcessSuccess = processRegistration(dataRegistration);
+                    String dataRegistration = message.split("\\s+", 2)[1];
+                    processRegistration(dataRegistration);
                     break;
             }
         }
@@ -137,8 +139,18 @@ public class ServerHandler {
         server.getConnectedUsers();
     }
 
-    private boolean processRegistration(String dataRegistration) {
-        return false;
+    private void processRegistration(String dataRegistration) throws IOException {
+        String login = dataRegistration.split("\\s+", 2)[0];
+        String password = dataRegistration.split("\\s+", 2)[1];
+        if(login.matches("\\s+")) {
+            sendMessage(ERROR_REGISTRATION_COMMAND, "Логин не может содержать символ пробела");
+        } else if(login.length() > 30 || password.length() > 30) {
+            sendMessage(ERROR_REGISTRATION_COMMAND, "Поле логин и пароль не могут быть длинее 30 символов");
+        } else {
+            User user = new User(login, password);
+            server.getAuthenticationService().addUser(user);
+            sendMessage(OK_REGISTRATION_COMMAND, "");
+        }
     }
 
     private void waitMessage() throws IOException {

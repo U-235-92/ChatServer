@@ -9,4 +9,5 @@ public interface AuthenticationService {
     User getAuthenticatedUser(String login, String password);
     boolean isExistUser(String login);
     String getErrorAuthenticationMessage(String password);
+    void addUser(User user);
 }
