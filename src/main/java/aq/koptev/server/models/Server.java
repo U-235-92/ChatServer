@@ -1,8 +1,9 @@
 package aq.koptev.server.models;
 
 import aq.koptev.server.handlers.ServerHandler;
-import aq.koptev.server.sevicies.AuthenticationService;
-import aq.koptev.server.sevicies.SimpleAuthenticationService;
+import aq.koptev.server.sevicies.auth.AuthenticationService;
+import aq.koptev.server.sevicies.auth.DataBaseAuthenticationService;
+import aq.koptev.server.sevicies.auth.SimpleAuthenticationService;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -26,7 +27,7 @@ public class Server {
     public Server(int port) {
         this.port = port;
         handlers = new ArrayList<>();
-        authenticationService = new SimpleAuthenticationService();
+        authenticationService = new DataBaseAuthenticationService();
         try {
             serverSocket = new ServerSocket(port);
         } catch (IOException e) {

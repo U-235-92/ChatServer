@@ -1,4 +1,4 @@
-package aq.koptev.server.sevicies;
+package aq.koptev.server.sevicies.auth;
 
 import aq.koptev.server.models.User;
 
@@ -27,7 +27,7 @@ public class SimpleAuthenticationService implements AuthenticationService {
     }
 
     @Override
-    public User getAuthenticatedUser(String login, String password) {
+    public User getUser(String login, String password) {
         Collections.sort(users);
         int userIndex = Collections.binarySearch(users, new User(login, password));
         if(userIndex >= 0) {
@@ -47,7 +47,7 @@ public class SimpleAuthenticationService implements AuthenticationService {
     }
 
     @Override
-    public String getErrorAuthenticationMessage(String password) {
+    public String getErrorAuthenticationMessage(String login, String password) {
         if(authUser == null) {
             return WRONG_LOGIN;
         } else {
@@ -60,7 +60,7 @@ public class SimpleAuthenticationService implements AuthenticationService {
     }
 
     @Override
-    public void addUser(User user) {
+    public void registerUser(User user) {
         users.add(user);
     }
 }

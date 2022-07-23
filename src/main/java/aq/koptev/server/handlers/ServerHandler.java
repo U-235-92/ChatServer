@@ -2,7 +2,7 @@ package aq.koptev.server.handlers;
 
 import aq.koptev.server.models.Server;
 import aq.koptev.server.models.User;
-import aq.koptev.server.sevicies.AuthenticationService;
+import aq.koptev.server.sevicies.auth.AuthenticationService;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -111,10 +111,10 @@ public class ServerHandler {
 
     private boolean isAuthenticationSuccess(String login, String password) throws IOException {
         AuthenticationService authenticationService = server.getAuthenticationService();
-        user = authenticationService.getAuthenticatedUser(login, password);
+        user = authenticationService.getUser(login, password);
         String errorAuthenticationMessage = "";
         if(user == null) {
-            errorAuthenticationMessage = authenticationService.getErrorAuthenticationMessage(password);
+            errorAuthenticationMessage = authenticationService.getErrorAuthenticationMessage(login, password);
             sendMessage(ERROR_AUTHENTICATION_COMMAND, errorAuthenticationMessage);
             return false;
         } else {
@@ -148,7 +148,7 @@ public class ServerHandler {
             sendMessage(ERROR_REGISTRATION_COMMAND, "Поле логин и пароль не могут быть длинее 30 символов");
         } else {
             User user = new User(login, password);
-            server.getAuthenticationService().addUser(user);
+            server.getAuthenticationService().registerUser(user);
             sendMessage(OK_REGISTRATION_COMMAND, "");
         }
     }

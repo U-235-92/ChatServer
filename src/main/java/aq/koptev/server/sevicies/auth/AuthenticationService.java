@@ -1,4 +1,4 @@
-package aq.koptev.server.sevicies;
+package aq.koptev.server.sevicies.auth;
 
 import aq.koptev.server.models.User;
 
@@ -6,8 +6,8 @@ public interface AuthenticationService {
     String WRONG_LOGIN = "Неверный логин";
     String WRONG_PASSWORD = "Неверный пароль";
     String EMPTY_MESSAGE = "";
-    User getAuthenticatedUser(String login, String password);
+    User getUser(String login, String password);
     boolean isExistUser(String login);
-    String getErrorAuthenticationMessage(String password);
-    void addUser(User user);
+    String getErrorAuthenticationMessage(String login, String password);
+    void registerUser(User user);
 }
