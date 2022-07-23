@@ -19,7 +19,10 @@ public class ServerHandler {
     public static final String ERROR_REGISTRATION_COMMAND = "#errreg";
     public static final String OK_REGISTRATION_COMMAND = "#okreg";
     public static final String USER_CONNECT_COMMAND = "#c";
+    public static final String CHANGE_USER_ACCOUNT_COMMAND = "#chuacc";
     public static final String USER_DISCONNECT_COMMAND = "#dc";
+    public static final String OK_CHANGE_USER_ACCOUNT_MESSAGE = "#okchlog";
+    public static final String ERROR_CHANGE_LOGIN_MESSAGE = "#errchlog";
     public static final String PRIVATE_SERVER_MESSAGE = "#psm";
     public static final String CONNECTED_USERS_REQUEST = "#reqcu";
     private Socket clientSocket;
@@ -174,6 +177,11 @@ public class ServerHandler {
                     receiver = message.split("\\s+", 3)[2].split("\\s+", 2)[0];
                     textMessage = message.split("\\s+", 4)[3];
                     server.sendPrivateMessage(sender, receiver, textMessage);
+                    break;
+                case CHANGE_USER_ACCOUNT_COMMAND:
+                    String oldLogin = message.split("\\s+", 3)[1];
+                    String newLogin = message.split("\\s+", 3)[2];
+                    server.offerChangeUserAccountSettings(oldLogin, newLogin);
                     break;
             }
         }

@@ -22,4 +22,8 @@ public class User implements Comparable<User> {
     public int compareTo(User o) {
         return o.login.compareTo(login);
     }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
 }

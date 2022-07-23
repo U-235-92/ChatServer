@@ -4,10 +4,16 @@ import aq.koptev.server.handlers.ServerHandler;
 import aq.koptev.server.sevicies.auth.AuthenticationService;
 import aq.koptev.server.sevicies.auth.DataBaseAuthenticationService;
 import aq.koptev.server.sevicies.auth.SimpleAuthenticationService;
+import aq.koptev.server.sevicies.dbconnect.DBConnector;
+import aq.koptev.server.sevicies.dbconnect.SQLiteConnector;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -181,5 +187,10 @@ public class Server {
 
     public AuthenticationService getAuthenticationService() {
         return authenticationService;
+    }
+
+    public void offerChangeUserAccountSettings(String oldLogin, String newLogin) throws IOException {
+//      соединение с БД, проверка логина
+
     }
 }
