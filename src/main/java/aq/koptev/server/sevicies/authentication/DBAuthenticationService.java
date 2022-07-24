@@ -26,9 +26,17 @@ public class DBAuthenticationService implements AuthenticationService {
              PreparedStatement preparedStatement = connector.getPreparedStatement(connection, sql)) {
             preparedStatement.setString(1, login);
             ResultSet resultSet = preparedStatement.executeQuery();
-            String resultLogin = resultSet.getString(1);
-            String resultPassword = resultSet.getString(2);
-            user = new User(resultLogin, resultPassword);
+            String resultLogin = resultSet.getString(1).trim();
+            String resultPassword = resultSet.getString(2).trim();
+            if(resultLogin.equals(login)) {
+                if(resultPassword.equals(password)) {
+                    user = new User(resultLogin, resultPassword);
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (SQLException e) {
@@ -44,15 +52,28 @@ public class DBAuthenticationService implements AuthenticationService {
 
     @Override
     public String getErrorAuthenticationMessage(String login, String password) {
-        User user = getUser(login, password);
-        if(user == null) {
-            return AuthenticationMessages.EMPTY_MESSAGE.getMessage();
-        } else {
-            if(!user.getPassword().equals(password)) {
-                return AuthenticationMessages.EMPTY_MESSAGE.getMessage();
+        String sql = "SELECT login, password FROM Users WHERE login = ?";
+        try (Connection connection = connector.getConnection(URL);
+             PreparedStatement preparedStatement = connector.getPreparedStatement(connection, sql)) {
+            preparedStatement.setString(1, login);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            String resultLogin = resultSet.getString(1).trim();
+            String resultPassword = resultSet.getString(2).trim();
+            if(resultLogin.equals(login)) {
+                if(resultPassword.equals(password)) {
+                    return AuthenticationMessages.EMPTY_MESSAGE.getMessage();
+                } else {
+                    return AuthenticationMessages.WRONG_PASSWORD.getMessage();
+                }
             } else {
-                return AuthenticationMessages.WRONG_PASSWORD.getMessage();
+                return AuthenticationMessages.WRONG_LOGIN.getMessage();
             }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return AuthenticationMessages.WRONG_LOGIN.getMessage();
         }
+        return AuthenticationMessages.EMPTY_MESSAGE.getMessage();
     }
 }

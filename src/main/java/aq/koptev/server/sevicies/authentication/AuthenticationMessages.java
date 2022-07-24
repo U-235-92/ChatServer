@@ -2,7 +2,7 @@ package aq.koptev.server.sevicies.authentication;
 
 public enum AuthenticationMessages {
 
-    WRONG_LOGIN("Неверный логин"), WRONG_PASSWORD("Неверный пароль"), EMPTY_MESSAGE("");
+    WRONG_LOGIN("РќРµРІРµСЂРЅС‹Р№ Р»РѕРіРёРЅ"), WRONG_PASSWORD("РќРµРІРµСЂРЅС‹Р№ РїР°СЂРѕР»СЊ"), EMPTY_MESSAGE("");
     private String message;
 
     AuthenticationMessages(String message) {

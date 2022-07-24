@@ -20,14 +20,6 @@ public class Identifier {
         this.registrationService = registrationService;
     }
 
-    public synchronized void closeAuthenticationProcess() {
-        isProcessSuccess = true;
-    }
-
-    public synchronized boolean isAuthenticationSuccess() {
-        return isProcessSuccess;
-    }
-
     public void identificationProcess(DataInputStream inputStream) {
         while(!isProcessSuccess) {
             String message = null;
@@ -87,15 +79,13 @@ public class Identifier {
             return false;
         } else {
             if(handler.isConnected(user.getLogin())) {
-                errorAuthenticationMessage = String.format("Пользователь с логином %s уже авторизован", user.getLogin());
+                errorAuthenticationMessage = String.format("РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ Р»РѕРіРёРЅРѕРј %s СѓР¶Рµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ", user.getLogin());
                 handler.sendMessage(Command.ERROR_AUTHENTICATION_COMMAND, errorAuthenticationMessage);
                 return false;
             } else {
                 handler.setUser(user);
                 handler.registrationHandler();
                 handler.sendMessage(Command.OK_AUTHENTICATION_COMMAND, login);
-//                handler.sendMessage(Command.USER_CONNECT_COMMAND,
-//                        String.format("Пользователь %s вошел в чат", handler.getUser().getLogin()));
                 return true;
             }
         }
@@ -105,15 +95,15 @@ public class Identifier {
         String login = dataRegistration.split("\\s+", 2)[0];
         String password = dataRegistration.split("\\s+", 2)[1];
         if(login.matches("\\s+")) {
-            handler.sendMessage(Command.ERROR_REGISTRATION_COMMAND, "Логин не может содержать символ пробела");
+            handler.sendMessage(Command.ERROR_REGISTRATION_COMMAND, "Р›РѕРіРёРЅ РЅРµ РјРѕР¶РµС‚ СЃРѕРґРµСЂР¶Р°С‚СЊ СЃРёРјРІРѕР» РїСЂРѕР±РµР»Р°");
         } else if(login.length() > 30 || password.length() > 30) {
-            handler.sendMessage(Command.ERROR_REGISTRATION_COMMAND, "Поле логин и пароль не могут быть длинее 30 символов");
+            handler.sendMessage(Command.ERROR_REGISTRATION_COMMAND, "РџРѕР»Рµ Р»РѕРіРёРЅ Рё РїР°СЂРѕР»СЊ РЅРµ РјРѕРіСѓС‚ Р±С‹С‚СЊ РґР»РёРЅРµРµ 30 СЃРёРјРІРѕР»РѕРІ");
         } else {
             User user = new User(login, password);
             if(registrationService.registerUser(user)) {
                 handler.sendMessage(Command.OK_REGISTRATION_COMMAND, "");
             } else {
-                handler.sendMessage(Command.ERROR_REGISTRATION_COMMAND, String.format("Логин %s уже занят", login));
+                handler.sendMessage(Command.ERROR_REGISTRATION_COMMAND, String.format("Р›РѕРіРёРЅ %s СѓР¶Рµ Р·Р°РЅСЏС‚", login));
             }
         }
     }
