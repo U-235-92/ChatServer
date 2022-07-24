@@ -72,10 +72,147 @@ public class Server {
     public synchronized void removeHandler(ServerHandler handler) throws IOException {
         handler.closeConnection();
         handlers.remove(handler);
-        getConnectedUsers();
+        sendConnectedUsers();
     }
 
-//    public synchronized void sendCommonMessage(String sender, String message) {
+    public synchronized void processMessage(String command, String message) {
+        if(command.equals(Command.COMMON_MESSAGE_COMMAND.getCommand())) {
+            sendCommonMessage(message);
+        } else if(command.equals(Command.PRIVATE_USER_MESSAGE_COMMAND.getCommand())) {
+            sendPrivateMessage(message);
+        } else if(command.equals(Command.USER_CONNECT_COMMAND.getCommand())) {
+            sendUserConnectedMessage(message);
+        } else if(command.equals(Command.USER_DISCONNECT_COMMAND.getCommand())) {
+            sendUserDisconnectedMessage(message);
+        } else if(command.equals(Command.GET_CONNECTED_USERS_COMMAND.getCommand())) {
+            sendConnectedUsers();
+        } else if(command.equals(Command.OK_AUTHENTICATION_COMMAND.getCommand())) {
+//            sendServerMessage(message);
+        }
+    }
+
+    private void sendCommonMessage(String message) {
+        String sender = message.split("\\s+", 3)[1];
+        String textMessage = message.split("\\s+", 3)[2];
+        for(ServerHandler handler : handlers) {
+            try {
+                handler.sendMessage(Command.COMMON_MESSAGE_COMMAND, sender, textMessage);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void sendPrivateMessage(String message) {
+        String sender = message.split("\\s+", 3)[1];
+        String receiver = message.split("\\s+", 3)[2].split("\\s+", 2)[0];
+        String textMessage = message.split("\\s+", 4)[3];
+        for(ServerHandler item : handlers) {
+            if(authenticationService.isExistUser(receiver)) {
+                if(isUserConnected(receiver)) {
+                    sendPrivateMessageIfReceiverConnected(item, sender, receiver, textMessage);
+                } else {
+                    sendPrivateMessageIfReceiverDisconnected(item, sender, receiver);
+                }
+            } else {
+                sendPrivateMessageIfReceiverIsNotExist(item, sender, receiver);
+            }
+        }
+    }
+
+    public synchronized boolean isUserConnected(String login) {
+        for(ServerHandler handler : handlers) {
+            if(login.equals(handler.getUser().getLogin())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void sendPrivateMessageIfReceiverConnected(ServerHandler handler, String sender, String receiver, String message) {
+        if(handler.getUser().getLogin().equals(receiver) || handler.getUser().getLogin().equals(sender)) {
+            try {
+                handler.sendMessage(Command.PRIVATE_USER_MESSAGE_COMMAND, sender, message);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void sendPrivateMessageIfReceiverDisconnected(ServerHandler handler, String sender, String receiver) {
+        if(handler.getUser().getLogin().equals(sender)) {
+            try {
+                String message = String.format("Пользователь с логином %s сейчас не в сети", receiver);
+                handler.sendMessage(Command.PRIVATE_SERVER_MESSAGE, message);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void sendPrivateMessageIfReceiverIsNotExist(ServerHandler handler, String sender, String receiver) {
+        if(handler.getUser().getLogin().equals(sender)) {
+            try {
+                String message = String.format("Пользователя с логином %s не существует", receiver);
+                handler.sendMessage(Command.PRIVATE_SERVER_MESSAGE, message);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void sendUserConnectedMessage(String message) {
+        for(ServerHandler serverHandler : handlers) {
+            try {
+                serverHandler.sendMessage(Command.USER_CONNECT_COMMAND, message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void sendUserDisconnectedMessage(String message) {
+        for(ServerHandler serverHandler : handlers) {
+            try {
+                serverHandler.sendMessage(Command.USER_DISCONNECT_COMMAND, message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void sendConnectedUsers() {
+        String users = "";
+        for(ServerHandler handler : handlers) {
+            users += String.format("%s ", handler.getUser().getLogin());
+        }
+        for(ServerHandler handler : handlers) {
+            try {
+                handler.sendMessage(Command.GET_CONNECTED_USERS_COMMAND, users);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void sendServerMessage(String message) {
+        for(ServerHandler handler : handlers) {
+            try {
+                handler.sendMessage(Command.OK_AUTHENTICATION_COMMAND, message.split("\\s+", 2)[1]);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public AuthenticationService getAuthenticationService() {
+        return authenticationService;
+    }
+
+    public RegistrationService getRegistrationService() {
+        return registrationService;
+    }
+    //    public synchronized void sendCommonMessage(String sender, String message) {
 //        for(ServerHandler handler : handlers) {
 //            try {
 //                handler.sendMessage(Command.COMMON_MESSAGE_COMMAND.getCommand(), sender, message);
@@ -168,28 +305,20 @@ public class Server {
 //        }
 //    }
 //
-    public void getConnectedUsers() {
-        String users = "";
-        for(ServerHandler handler : handlers) {
-            users += String.format("%s ", handler.getUser().getLogin());
-        }
-        for(ServerHandler handler : handlers) {
-            try {
-                handler.sendMessage(Command.CONNECTED_USERS_REQUEST.getCommand(), users);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    public AuthenticationService getAuthenticationService() {
-        return authenticationService;
-    }
-
-    public RegistrationService getRegistrationService() {
-        return registrationService;
-    }
-
+//
+//    public void getConnectedUsers() {
+//        String users = "";
+//        for(ServerHandler handler : handlers) {
+//            users += String.format("%s ", handler.getUser().getLogin());
+//        }
+//        for(ServerHandler handler : handlers) {
+//            try {
+//                handler.sendMessage(Command.SEND_CONNECTED_USERS_COMMAND.getCommand(), users);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//    }
 //    public void offerChangeUserAccountSettings(String oldLogin, String newLogin) throws IOException {
 ////      соединение с БД, проверка логина
 //

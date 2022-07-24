@@ -2,21 +2,21 @@ package aq.koptev.server.models;
 
 public enum Command {
 
-    AUTHENTICATION_COMMAND("#l"),
-    REGISTRATION_COMMAND("#r"),
-    COMMON_MESSAGE_COMMAND("#a"),
-    PRIVATE_SERVER_MESSAGE("#psm"),
-    PRIVATE_MESSAGE_COMMAND("#p"),
-    ERROR_AUTHENTICATION_COMMAND("#errauth"),
-    ERROR_REGISTRATION_COMMAND("#errreg"),
-    ERROR_CHANGE_LOGIN_MESSAGE("#errchlog"),
-    OK_AUTHENTICATION_COMMAND("#okauth"),
-    OK_REGISTRATION_COMMAND("#okreg"),
-    OK_CHANGE_USER_ACCOUNT_MESSAGE("#okchlog"),
-    USER_CONNECT_COMMAND("#c"),
-    USER_DISCONNECT_COMMAND("#dc"),
-    CHANGE_USER_ACCOUNT_COMMAND("#chuacc"),
-    CONNECTED_USERS_REQUEST("#reqcu");
+    AUTHENTICATION_COMMAND("#authentication"),
+    REGISTRATION_COMMAND("#registration"),
+    COMMON_MESSAGE_COMMAND("#common_msg"),
+    PRIVATE_SERVER_MESSAGE("#private_server_message"),
+    PRIVATE_USER_MESSAGE_COMMAND("#private_user_message"),
+    ERROR_AUTHENTICATION_COMMAND("#err_autentication"),
+    ERROR_REGISTRATION_COMMAND("#err_registration"),
+    ERROR_CHANGE_LOGIN_MESSAGE("#err_change_login"),
+    OK_AUTHENTICATION_COMMAND("#ok_authentication"),
+    OK_REGISTRATION_COMMAND("#ok_registration"),
+    OK_CHANGE_LOGIN_MESSAGE("#ok_change_login"),
+    USER_CONNECT_COMMAND("#user_connected"),
+    USER_DISCONNECT_COMMAND("#user_disconected"),
+    GET_CONNECTED_USERS_COMMAND("#get_connected_users"),
+    CHANGE_USER_LOGIN_COMMAND("#change_user_login");
     private String command;
 
     Command(String command) {
