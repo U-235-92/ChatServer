@@ -1,4 +1,4 @@
-package aq.koptev.server.sevicies.auth;
+package aq.koptev.server.sevicies.authentication;
 
 import aq.koptev.server.models.User;
 
@@ -49,18 +49,13 @@ public class SimpleAuthenticationService implements AuthenticationService {
     @Override
     public String getErrorAuthenticationMessage(String login, String password) {
         if(authUser == null) {
-            return WRONG_LOGIN;
+            return AuthenticationMessages.WRONG_PASSWORD.getMessage();
         } else {
             if(!authUser.getPassword().equals(password)) {
-                return WRONG_PASSWORD;
+                return AuthenticationMessages.WRONG_PASSWORD.getMessage();
             } else {
-                return EMPTY_MESSAGE;
+                return AuthenticationMessages.WRONG_PASSWORD.getMessage();
             }
         }
-    }
-
-    @Override
-    public void registerUser(User user) {
-        users.add(user);
     }
 }

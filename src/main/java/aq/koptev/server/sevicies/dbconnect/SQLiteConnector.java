@@ -16,6 +16,7 @@ public class SQLiteConnector implements DBConnector {
 
     @Override
     public PreparedStatement getPreparedStatement(Connection connection, String sql) throws SQLException {
-        return connection.prepareStatement(sql);
+        preparedStatement = connection.prepareStatement(sql);
+        return preparedStatement;
     }
 }

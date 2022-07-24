@@ -1,4 +1,4 @@
-package aq.koptev.server.sevicies.auth;
+package aq.koptev.server.sevicies.authentication;
 
 import aq.koptev.server.models.User;
 import aq.koptev.server.sevicies.dbconnect.DBConnector;
@@ -9,18 +9,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class DataBaseAuthenticationService implements AuthenticationService {
+public class DBAuthenticationService implements AuthenticationService {
 
-    private static final String URL = "jdbc:sqlite:src/main/resources/db/chat-db.db";
+    private final String URL = "jdbc:sqlite:src/main/resources/db/chat-db.db";
     private DBConnector connector;
 
-    public DataBaseAuthenticationService() {
+    public DBAuthenticationService() {
         connector = new SQLiteConnector();
     }
 
     @Override
     public User getUser(String login, String password) {
-        //сделать запрос, получить юзера
         User user = null;
         String sql = "SELECT login, password FROM Users WHERE login = ?";
         try (Connection connection = connector.getConnection(URL);
@@ -47,31 +46,13 @@ public class DataBaseAuthenticationService implements AuthenticationService {
     public String getErrorAuthenticationMessage(String login, String password) {
         User user = getUser(login, password);
         if(user == null) {
-            return WRONG_LOGIN;
+            return AuthenticationMessages.EMPTY_MESSAGE.getMessage();
         } else {
             if(!user.getPassword().equals(password)) {
-                return WRONG_PASSWORD;
+                return AuthenticationMessages.EMPTY_MESSAGE.getMessage();
             } else {
-                return EMPTY_MESSAGE;
+                return AuthenticationMessages.WRONG_PASSWORD.getMessage();
             }
-        }
-    }
-
-    @Override
-    public void registerUser(User user) {
-        String sql = "INSERT INTO Users (login, password) VALUES (?, ?)";
-        try (Connection connection = connector.getConnection(URL);
-             PreparedStatement preparedStatement = connector.getPreparedStatement(connection, sql)){
-            preparedStatement.setString(1, user.getLogin());
-            preparedStatement.setString(2, user.getPassword());
-            connection.setAutoCommit(false);
-            preparedStatement.addBatch();
-            preparedStatement.executeBatch();
-            connection.setAutoCommit(true);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 }
