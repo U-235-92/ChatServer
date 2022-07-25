@@ -47,7 +47,24 @@ public class DBAuthenticationService implements AuthenticationService {
 
     @Override
     public boolean isExistUser(String login) {
-        return getUser(login, "") != null;
+        String sql = "SELECT login FROM Users WHERE login = ?";
+        try (Connection connection = connector.getConnection(DBConnectURL.CHAT_DB.getURL());
+             PreparedStatement preparedStatement = connector.getPreparedStatement(connection, sql)) {
+            preparedStatement.setString(1, login);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            String resultLogin = resultSet.getString(1).trim();
+            if(resultLogin.equals(login)) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override

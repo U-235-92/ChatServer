@@ -86,6 +86,8 @@ public class Server {
             sendUserDisconnectedMessage(message);
         } else if(command.equals(Command.GET_CONNECTED_USERS_COMMAND.getCommand())) {
             sendConnectedUsers();
+        } else if(command.equals(Command.CHANGE_USER_ACCOUNT_SETTINGS_COMMAND.getCommand())) {
+
         }
     }
 

@@ -85,7 +85,8 @@ public class Identifier {
             } else {
                 handler.setUser(user);
                 handler.registrationHandler();
-                handler.sendMessage(Command.OK_AUTHENTICATION_COMMAND, login);
+                String message = String.format("%s %s", login, password);
+                handler.sendMessage(Command.OK_AUTHENTICATION_COMMAND, message);
                 return true;
             }
         }
