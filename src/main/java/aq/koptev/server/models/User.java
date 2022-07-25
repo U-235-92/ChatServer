@@ -26,4 +26,8 @@ public class User implements Comparable<User> {
     public void setLogin(String login) {
         this.login = login;
     }
+
+    public void setPassword(String newPassword) {
+        this.password = password;
+    }
 }

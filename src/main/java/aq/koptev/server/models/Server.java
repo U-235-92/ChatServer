@@ -1,6 +1,8 @@
 package aq.koptev.server.models;
 
 import aq.koptev.server.handlers.ServerHandler;
+import aq.koptev.server.sevicies.account.AccountService;
+import aq.koptev.server.sevicies.account.SimpleAccountService;
 import aq.koptev.server.sevicies.authentication.AuthenticationService;
 import aq.koptev.server.sevicies.authentication.DBAuthenticationService;
 import aq.koptev.server.sevicies.registration.DBRegistrationService;
@@ -20,6 +22,7 @@ public class Server {
     private int port;
     private AuthenticationService authenticationService;
     private RegistrationService registrationService;
+    private AccountService accountService;
     private List<ServerHandler> handlers;
 
     public Server() {
@@ -31,6 +34,7 @@ public class Server {
         handlers = new ArrayList<>();
         authenticationService = new DBAuthenticationService();
         registrationService = new DBRegistrationService();
+        accountService = new SimpleAccountService();
         try {
             serverSocket = new ServerSocket(port);
         } catch (IOException e) {
@@ -87,7 +91,7 @@ public class Server {
         } else if(command.equals(Command.GET_CONNECTED_USERS_COMMAND.getCommand())) {
             sendConnectedUsers();
         } else if(command.equals(Command.CHANGE_USER_ACCOUNT_SETTINGS_COMMAND.getCommand())) {
-
+            sendChangeUserAccountMessage(message);
         }
     }
 
@@ -169,6 +173,71 @@ public class Server {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void sendChangeUserAccountMessage(String message) {
+        String oldLogin = null;
+        String newLogin = null;
+        String newPassword = null;
+        if(accountService.changeAccountSettings(message)) {
+            if(message.split("\\s+", 4).length > 3) {
+                oldLogin = message.split("\\s+", 4)[0];
+                newLogin = message.split("\\s+", 4)[1];
+                newPassword = message.split("\\s+", 4)[3];
+                for(ServerHandler handler : handlers) {
+                    if(handler.getUser().getLogin().equals(oldLogin)) {
+                        handler.getUser().setLogin(newLogin);
+                        handler.getUser().setPassword(newPassword);
+                        try {
+                            handler.sendMessage(Command.OK_CHANGE_USER_ACCOUNT_SETTINGS_COMMAND, String.format("%s %s", newLogin, newPassword));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        break;
+                    }
+                }
+                sendConnectedUsers();
+            } else {
+                oldLogin = message.split("\\s+", 4)[0];
+                newLogin = message.split("\\s+", 4)[1];
+                newPassword = "";
+                for(ServerHandler handler : handlers) {
+                    if(handler.getUser().getLogin().equals(oldLogin)) {
+                        handler.getUser().setLogin(newLogin);
+                        handler.getUser().setPassword(newPassword);
+                        try {
+                            handler.sendMessage(Command.OK_CHANGE_USER_ACCOUNT_SETTINGS_COMMAND, String.format("%s %s", newLogin, newPassword));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        break;
+                    }
+                }
+                sendConnectedUsers();
+            }
+        } else {
+            oldLogin = message.split("\\s+", 4)[0];
+            newLogin = message.split("\\s+", 4)[1];
+            for(ServerHandler handler : handlers) {
+                if(handler.getUser().getLogin().equals(oldLogin)) {
+                    try {
+                        handler.sendMessage(Command.ERROR_CHANGE_USER_ACCOUNT_SETTINGS_COMMAND, String.format("Указанный логин %s уже занят", newLogin));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    break;
+                }
+            }
+        }
+
+        /*
+            Обратиться к БД, узнать не занят ли новый логин
+            Если не занят - поменять логин, если поменялся пароль - поменять пароль
+            Обновить в списке хендлеров пользователя
+            Обновить список подключенных пользователей у хендлеров
+            Отправить новый логин и пароль пользователю, изменившему логин и пароль
+            Иначе сообщение об ошибке занятого логина
+            * */
     }
 
     private void sendUserDisconnectedMessage(String message) {
