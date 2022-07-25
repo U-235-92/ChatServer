@@ -193,16 +193,6 @@ public class Server {
         }
     }
 
-    private void sendServerMessage(String message) {
-        for(ServerHandler handler : handlers) {
-            try {
-                handler.sendMessage(Command.OK_AUTHENTICATION_COMMAND, message.split("\\s+", 2)[1]);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
     public AuthenticationService getAuthenticationService() {
         return authenticationService;
     }

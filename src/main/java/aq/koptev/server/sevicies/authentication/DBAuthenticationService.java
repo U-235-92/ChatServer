@@ -1,6 +1,7 @@
 package aq.koptev.server.sevicies.authentication;
 
 import aq.koptev.server.models.User;
+import aq.koptev.server.sevicies.dbconnect.DBConnectURL;
 import aq.koptev.server.sevicies.dbconnect.DBConnector;
 import aq.koptev.server.sevicies.dbconnect.SQLiteConnector;
 
@@ -11,7 +12,6 @@ import java.sql.SQLException;
 
 public class DBAuthenticationService implements AuthenticationService {
 
-    private final String URL = "jdbc:sqlite:src/main/resources/db/chat-db.db";
     private DBConnector connector;
 
     public DBAuthenticationService() {
@@ -22,7 +22,7 @@ public class DBAuthenticationService implements AuthenticationService {
     public User getUser(String login, String password) {
         User user = null;
         String sql = "SELECT login, password FROM Users WHERE login = ?";
-        try (Connection connection = connector.getConnection(URL);
+        try (Connection connection = connector.getConnection(DBConnectURL.CHAT_DB.getURL());
              PreparedStatement preparedStatement = connector.getPreparedStatement(connection, sql)) {
             preparedStatement.setString(1, login);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -53,7 +53,7 @@ public class DBAuthenticationService implements AuthenticationService {
     @Override
     public String getErrorAuthenticationMessage(String login, String password) {
         String sql = "SELECT login, password FROM Users WHERE login = ?";
-        try (Connection connection = connector.getConnection(URL);
+        try (Connection connection = connector.getConnection(DBConnectURL.CHAT_DB.getURL());
              PreparedStatement preparedStatement = connector.getPreparedStatement(connection, sql)) {
             preparedStatement.setString(1, login);
             ResultSet resultSet = preparedStatement.executeQuery();

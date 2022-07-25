@@ -24,18 +24,7 @@ public class ServerHandler implements Handler {
     }
 
     @Override
-    public void closeConnection() throws IOException {
-        clientSocket.close();
-    }
-
-    @Override
-    public boolean isConnected(String login) {
-        return server.isUserConnected(login);
-    }
-
-    @Override
     public void handle() {
-        identifier.identificationProcess(inputStream);
         Thread thread = new Thread(() -> {
             try {
                 identifier.identificationProcess(inputStream);
@@ -43,12 +32,7 @@ public class ServerHandler implements Handler {
                 sendConnectedUserLogin();
                 waitMessage();
             } catch (IOException e) {
-                server.processMessage(Command.USER_DISCONNECT_COMMAND.getCommand() ,String.format("Пользователь %s покинул чат", user.getLogin()));
-                try {
-                    server.removeHandler(this);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+                processDisconnectHandler();
                 e.printStackTrace();
             }
         });
@@ -63,6 +47,23 @@ public class ServerHandler implements Handler {
         sendMessage(Command.OK_AUTHENTICATION_COMMAND, user.getLogin());
     }
 
+    private void processDisconnectHandler() {
+        sendDisconnectedUserLogin();
+        disconnectHandler();
+    }
+
+    private void sendDisconnectedUserLogin() {
+        server.processMessage(Command.USER_DISCONNECT_COMMAND.getCommand(), String.format("Пользователь %s покинул чат", user.getLogin()));
+    }
+
+    private void disconnectHandler() {
+        try {
+            server.removeHandler(this);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
     @Override
     public void waitMessage() throws IOException {
         while(true) {
@@ -74,15 +75,6 @@ public class ServerHandler implements Handler {
             String message = incomingString.split("\\s+", 2)[1];
             server.processMessage(command, message);
         }
-    }
-
-    @Override
-    public User getUser() {
-        return user;
-    }
-    @Override
-    public void setUser(User user) {
-        this.user = user;
     }
 
     @Override
@@ -104,7 +96,27 @@ public class ServerHandler implements Handler {
     }
 
     @Override
+    public User getUser() {
+        return user;
+    }
+
+    @Override
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    @Override
     public void registrationHandler() {
         server.addHandler(this);
+    }
+
+    @Override
+    public void closeConnection() throws IOException {
+        clientSocket.close();
+    }
+
+    @Override
+    public boolean isConnected(String login) {
+        return server.isUserConnected(login);
     }
 }
