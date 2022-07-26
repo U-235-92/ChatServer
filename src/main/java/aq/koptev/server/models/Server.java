@@ -76,26 +76,28 @@ public class Server {
     public synchronized void removeHandler(ServerHandler handler) throws IOException {
         handler.closeConnection();
         handlers.remove(handler);
-        sendConnectedUsers();
+        processConnectedUsers();
     }
 
     public synchronized void processMessage(String command, String message) {
         if(command.equals(Command.COMMON_MESSAGE_COMMAND.getCommand())) {
-            sendCommonMessage(message);
-        } else if(command.equals(Command.PRIVATE_USER_MESSAGE_COMMAND.getCommand())) {
-            sendPrivateMessage(message);
+            processCommonMessage(message);
+        } else if(command.equals(Command.PRIVATE_MESSAGE_COMMAND.getCommand())) {
+            processPrivateMessage(message);
         } else if(command.equals(Command.USER_CONNECT_COMMAND.getCommand())) {
-            sendUserConnectedMessage(message);
+            processUserConnectedMessage(message);
         } else if(command.equals(Command.USER_DISCONNECT_COMMAND.getCommand())) {
-            sendUserDisconnectedMessage(message);
+            processUserDisconnectedMessage(message);
         } else if(command.equals(Command.GET_CONNECTED_USERS_COMMAND.getCommand())) {
-            sendConnectedUsers();
+            processConnectedUsers();
+        } else if(command.equals(Command.GET_CONNECTED_USER_COMMAND.getCommand())) {
+            processConnectedUser(message);
         } else if(command.equals(Command.CHANGE_USER_ACCOUNT_SETTINGS_COMMAND.getCommand())) {
-            sendChangeUserAccountMessage(message);
+            processChangeUserAccountMessage(message);
         }
     }
 
-    private void sendCommonMessage(String message) {
+    private void processCommonMessage(String message) {
         String sender = message.split("\\s+", 2)[0];
         String textMessage = message.split("\\s+", 2)[1];
         for(ServerHandler handler : handlers) {
@@ -107,7 +109,7 @@ public class Server {
         }
     }
 
-    private void sendPrivateMessage(String message) {
+    private void processPrivateMessage(String message) {
         String sender = message.split("\\s+", 3)[0];
         String receiver = message.split("\\s+", 3)[1];
         String textMessage = message.split("\\s+", 3)[2];
@@ -136,7 +138,7 @@ public class Server {
     private void sendPrivateMessageIfReceiverConnected(ServerHandler handler, String sender, String receiver, String message) {
         if(handler.getUser().getLogin().equals(receiver) || handler.getUser().getLogin().equals(sender)) {
             try {
-                handler.sendMessage(Command.PRIVATE_USER_MESSAGE_COMMAND, sender, message);
+                handler.sendMessage(Command.PRIVATE_MESSAGE_COMMAND, sender, message);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -165,7 +167,7 @@ public class Server {
         }
     }
 
-    private void sendUserConnectedMessage(String message) {
+    private void processUserConnectedMessage(String message) {
         for(ServerHandler serverHandler : handlers) {
             try {
                 serverHandler.sendMessage(Command.USER_CONNECT_COMMAND, message);
@@ -173,9 +175,10 @@ public class Server {
                 e.printStackTrace();
             }
         }
+//        processConnectedUsers();
     }
 
-    private void sendChangeUserAccountMessage(String message) {
+    private void processChangeUserAccountMessage(String message) {
         String oldLogin = null;
         String newLogin = null;
         String newPassword = null;
@@ -196,7 +199,7 @@ public class Server {
                         break;
                     }
                 }
-                sendConnectedUsers();
+                processConnectedUsers();
             } else {
                 oldLogin = message.split("\\s+", 4)[0];
                 newLogin = message.split("\\s+", 4)[1];
@@ -213,7 +216,7 @@ public class Server {
                         break;
                     }
                 }
-                sendConnectedUsers();
+                processConnectedUsers();
             }
         } else {
             oldLogin = message.split("\\s+", 4)[0];
@@ -240,7 +243,7 @@ public class Server {
             * */
     }
 
-    private void sendUserDisconnectedMessage(String message) {
+    private void processUserDisconnectedMessage(String message) {
         for(ServerHandler serverHandler : handlers) {
             try {
                 serverHandler.sendMessage(Command.USER_DISCONNECT_COMMAND, message);
@@ -250,7 +253,7 @@ public class Server {
         }
     }
 
-    private void sendConnectedUsers() {
+    private void processConnectedUsers() {
         String users = "";
         for(ServerHandler handler : handlers) {
             users += String.format("%s ", handler.getUser().getLogin());
@@ -260,6 +263,22 @@ public class Server {
                 handler.sendMessage(Command.GET_CONNECTED_USERS_COMMAND, users);
             } catch (IOException e) {
                 throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void processConnectedUser(String message) {
+        String login = message.split("\\s+", 2)[0];
+        String password = message.split("\\s+", 2)[1];
+        for(ServerHandler handler : handlers) {
+            if(handler.getUser().getLogin().equals(login)) {
+                String send = String.format("%s %s", login, password);
+                try {
+                    handler.sendMessage(Command.GET_CONNECTED_USER_COMMAND, send);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                break;
             }
         }
     }
