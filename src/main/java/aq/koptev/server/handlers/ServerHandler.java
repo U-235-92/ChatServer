@@ -28,8 +28,7 @@ public class ServerHandler implements Handler {
         Thread thread = new Thread(() -> {
             try {
                 identifier.identificationProcess(inputStream);
-                sendConnectedUsers();
-                sendConnectedUserLogin();
+//                sendConnectedUser();
                 waitMessage();
             } catch (IOException e) {
                 processDisconnectHandler();
@@ -43,9 +42,8 @@ public class ServerHandler implements Handler {
         server.processMessage(Command.GET_CONNECTED_USERS_COMMAND.getCommand(), null);
     }
 
-    private void sendConnectedUserLogin() throws IOException{
-        String message = String.format("%s %s", user.getLogin(), user.getPassword());
-        sendMessage(Command.GET_CONNECTED_USER_COMMAND, message);
+    private void sendConnectedUser() throws IOException{
+        sendMessage(Command.GET_CONNECTED_USER_COMMAND, String.format("%s %s", user.getLogin(), user.getPassword()));
     }
 
     private void processDisconnectHandler() {
@@ -66,7 +64,7 @@ public class ServerHandler implements Handler {
     }
 
     @Override
-    public void waitMessage() throws IOException {
+    public synchronized void waitMessage() throws IOException {
         while(true) {
             String incomingString = inputStream.readUTF();
             if(!incomingString.startsWith("#")) {
@@ -79,20 +77,20 @@ public class ServerHandler implements Handler {
     }
 
     @Override
-    public void sendMessage(Command command, String message) throws IOException {
-        String send = String.format("%s %s", command.getCommand(), message);
+    public synchronized void sendMessage(Command command, String message) throws IOException {
+        String send = String.format("%s %s", command.getCommand(), message).trim();
         outputStream.writeUTF(send);
     }
 
     @Override
-    public void sendMessage(Command command, String sender, String message) throws IOException {
-        String send = String.format("%s %s %s", command.getCommand(), sender, message);
+    public synchronized void sendMessage(Command command, String sender, String message) throws IOException {
+        String send = String.format("%s %s %s", command.getCommand(), sender, message).trim();
         outputStream.writeUTF(send);
     }
 
     @Override
-    public void sendMessage(Command command, String sender, String receiver, String message) throws IOException {
-        String send = String.format("%s %s %s %s", sender, receiver, message);
+    public synchronized void sendMessage(Command command, String sender, String receiver, String message) throws IOException {
+        String send = String.format("%s %s %s %s", sender, receiver, message).trim();
         outputStream.writeUTF(send);
     }
 
