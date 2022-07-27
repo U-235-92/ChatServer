@@ -42,30 +42,26 @@ public class Server {
         }
     }
 
-    public void waitClient() {
+    public void waitClient() throws IOException {
         while(true) {
             System.out.println("Server wait for connection!");
-            processWaitClient();
+            clientSocket = processWaitClient();
             System.out.println("Connection is success!");
-            setUpHandler();
+            processCreatingAndLinkingServerHandler(clientSocket);
         }
     }
 
-    private void processWaitClient() {
-        try {
-            clientSocket = serverSocket.accept();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private Socket processWaitClient() throws IOException {
+        return serverSocket.accept();
     }
 
-    private void setUpHandler() {
-        ServerHandler handler = null;
-        try {
-            handler = new ServerHandler(this, clientSocket);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private void processCreatingAndLinkingServerHandler(Socket clientSocket) throws IOException {
+        ServerHandler handler = new ServerHandler(this, clientSocket, null);
+        handlers.add(handler);
+        launchHandler(handler);
+    }
+
+    private void launchHandler(ServerHandler handler) {
         handler.handle();
     }
 
@@ -76,24 +72,64 @@ public class Server {
     public synchronized void removeHandler(ServerHandler handler) throws IOException {
         handler.closeConnection();
         handlers.remove(handler);
-        processConnectedUsers();
+        processGetConnectedUsers();
     }
 
-    public synchronized void processMessage(String command, String message) {
-        if(command.equals(Command.COMMON_MESSAGE_COMMAND.getCommand())) {
-            processCommonMessage(message);
-        } else if(command.equals(Command.PRIVATE_MESSAGE_COMMAND.getCommand())) {
-            processPrivateMessage(message);
-        } else if(command.equals(Command.USER_CONNECT_COMMAND.getCommand())) {
-            processUserConnectedMessage(message);
-        } else if(command.equals(Command.USER_DISCONNECT_COMMAND.getCommand())) {
-            processUserDisconnectedMessage(message);
-        } else if(command.equals(Command.GET_CONNECTED_USERS_COMMAND.getCommand())) {
-            processConnectedUsers();
-        } else if(command.equals(Command.GET_CONNECTED_USER_COMMAND.getCommand())) {
-            processConnectedUser(message);
-        } else if(command.equals(Command.CHANGE_USER_ACCOUNT_SETTINGS_COMMAND.getCommand())) {
-            processChangeUserAccountMessage(message);
+    public synchronized void processMessage(Command command, String message) throws IOException {
+        switch (command) {
+            case AUTHENTICATION_COMMAND:
+                Authenticator authenticator = new Authenticator(this);
+                processAuthentication(authenticator, message);
+                break;
+            case REGISTRATION_COMMAND:
+                Registrar registrar = new Registrar(this);
+                processRegistration(registrar, message);
+                break;
+            case COMMON_MESSAGE_COMMAND:
+                processCommonMessage(message);
+                break;
+            case PRIVATE_MESSAGE_COMMAND:
+                processPrivateMessage(message);
+                break;
+            case USER_CONNECT_COMMAND:
+                processUserConnectedMessage(message);
+                break;
+            case USER_DISCONNECT_COMMAND:
+                processUserDisconnectedMessage(message);
+                break;
+            case SET_CONNECTED_USERS_COMMAND:
+                processGetConnectedUsers();
+                break;
+            case SET_CONNECTED_USER_META_COMMAND:
+                processGetConnectedUserMeta(message);
+                break;
+            case CHANGE_USER_ACCOUNT_SETTINGS_COMMAND:
+                processChangeUserAccountMessage(message);
+                break;
+        }
+    }
+
+    private void processAuthentication(Authenticator authenticator, String message) throws IOException {
+        User user = authenticator.processAuthentication(message);
+        if(user == null) {
+            String errorMessage = authenticator.getErrorMessage(message);
+            ServerHandler serverHandler = handlers.get(handlers.size() - 1);
+            serverHandler.sendMessage(Command.ERROR_AUTHENTICATION_COMMAND, errorMessage);
+        } else {
+            ServerHandler serverHandler = handlers.get(handlers.size() - 1);
+            serverHandler.setUser(user);
+            serverHandler.sendMessage(Command.OK_AUTHENTICATION_COMMAND, message);
+        }
+    }
+
+    private void processRegistration(Registrar registrar, String message) throws IOException {
+        String registrarResult = registrar.processRegistration(message);
+        if(registrarResult == null) {
+            ServerHandler nullServerHandler = new ServerHandler(this, clientSocket, null);
+            nullServerHandler.sendMessage(Command.OK_REGISTRATION_COMMAND, "Регистрация успешно завершена");
+        } else {
+            ServerHandler nullServerHandler = new ServerHandler(this, clientSocket, null);
+            nullServerHandler.sendMessage(Command.OK_REGISTRATION_COMMAND, registrarResult);
         }
     }
 
@@ -128,6 +164,9 @@ public class Server {
 
     public synchronized boolean isUserConnected(String login) {
         for(ServerHandler handler : handlers) {
+            if(handler.getUser() == null) {
+                return false;
+            }
             if(login.equals(handler.getUser().getLogin())) {
                 return true;
             }
@@ -199,7 +238,7 @@ public class Server {
                         break;
                     }
                 }
-                processConnectedUsers();
+                processGetConnectedUsers();
             } else {
                 oldLogin = message.split("\\s+", 4)[0];
                 newLogin = message.split("\\s+", 4)[1];
@@ -216,7 +255,7 @@ public class Server {
                         break;
                     }
                 }
-                processConnectedUsers();
+                processGetConnectedUsers();
             }
         } else {
             oldLogin = message.split("\\s+", 4)[0];
@@ -253,7 +292,7 @@ public class Server {
         }
     }
 
-    private void processConnectedUsers() {
+    private void processGetConnectedUsers() {
         String users = "";
         for(ServerHandler handler : handlers) {
             users += String.format("%s ", handler.getUser().getLogin());
@@ -267,16 +306,16 @@ public class Server {
         }
     }
 
-    private void processConnectedUser(String message) {
+    private void processGetConnectedUserMeta(String message) {
         String login = message.split("\\s+", 2)[0];
         String password = message.split("\\s+", 2)[1];
         for(ServerHandler handler : handlers) {
             if(handler.getUser().getLogin().equals(login)) {
                 String send = String.format("%s %s", login, password);
                 try {
-                    handler.sendMessage(Command.GET_CONNECTED_USER_COMMAND, send);
+                    handler.sendMessage(Command.GET_CONNECTED_USER_META_COMMAND, send);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
                 break;
             }

@@ -38,14 +38,14 @@ public class Identifier {
                 try {
                     isProcessSuccess = processAuthentication(dataAuthentication);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
             } else if(command.equals(Command.REGISTRATION_COMMAND.getCommand())) {
                 String dataRegistration = message.split("\\s+", 2)[1];
                 try {
                     processRegistration(dataRegistration);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
             }
         }

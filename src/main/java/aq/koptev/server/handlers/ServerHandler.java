@@ -14,11 +14,11 @@ public class ServerHandler implements Handler {
     private DataOutputStream outputStream;
     private User user;
     private Identifier identifier;
-    private MetaConnector metaConnector;/////////////////////////////////////
 
-    public ServerHandler(Server server, Socket clientSocket) throws IOException {
+    public ServerHandler(Server server, Socket clientSocket, User user) throws IOException {
         this.server = server;
         this.clientSocket = clientSocket;
+        this.user = user;
         inputStream = new DataInputStream(clientSocket.getInputStream());
         outputStream = new DataOutputStream(clientSocket.getOutputStream());
         identifier = new Identifier(this, server.getAuthenticationService(), server.getRegistrationService());
@@ -28,34 +28,29 @@ public class ServerHandler implements Handler {
     public void handle() {
         Thread thread = new Thread(() -> {
             try {
-                identifier.identificationProcess(inputStream);
-                metaConnector = new MetaConnector(server, user, inputStream);/////////////////////////////////////////
-                metaConnector.processConnectMeta();////////////////////////////////////////////////////////////////////////
-//                sendConnectedUser();
                 waitMessage();
             } catch (IOException e) {
-                processDisconnectHandler();
+                try {
+                    processDisconnectHandler();
+                } catch (IOException ex) {
+                    e.printStackTrace();
+                }
                 e.printStackTrace();
             }
         });
         thread.start();
     }
 
-    private void sendConnectedUsers() {
-        server.processMessage(Command.GET_CONNECTED_USERS_COMMAND.getCommand(), null);
-    }
-
-    private void sendConnectedUser() throws IOException{
-        sendMessage(Command.GET_CONNECTED_USER_COMMAND, String.format("%s %s", user.getLogin(), user.getPassword()));
-    }
-
-    private void processDisconnectHandler() {
+    private synchronized void processDisconnectHandler() throws IOException {
         sendDisconnectedUserLogin();
         disconnectHandler();
     }
 
-    private void sendDisconnectedUserLogin() {
-        server.processMessage(Command.USER_DISCONNECT_COMMAND.getCommand(), String.format("Пользователь %s покинул чат", user.getLogin()));
+    private void sendDisconnectedUserLogin() throws IOException {
+        System.out.println("diconnect");
+        if(user != null) {
+            server.processMessage(Command.USER_DISCONNECT_COMMAND, String.format("Пользователь %s покинул чат", user.getLogin()));
+        }
     }
 
     private void disconnectHandler() {
@@ -73,7 +68,7 @@ public class ServerHandler implements Handler {
             if(!incomingString.startsWith("#")) {
                 System.out.println("Bad command");
             }
-            String command = incomingString.split("\\s+", 2)[0];
+            Command command = Command.getCommandByValue(incomingString.split("\\s+", 2)[0]);
             String message = incomingString.split("\\s+", 2)[1];
             server.processMessage(command, message);
         }

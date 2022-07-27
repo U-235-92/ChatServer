@@ -16,7 +16,9 @@ public enum Command {
     USER_CONNECT_COMMAND("#user_connected"),
     USER_DISCONNECT_COMMAND("#user_disconected"),
     GET_CONNECTED_USERS_COMMAND("#get_connected_users"),
-    GET_CONNECTED_USER_COMMAND("#get_connected_user"),
+    SET_CONNECTED_USERS_COMMAND("#set_connected_users"),
+    GET_CONNECTED_USER_META_COMMAND("#get_connected_user_meta"),
+    SET_CONNECTED_USER_META_COMMAND("#set_connected_user_meta"),
     CHANGE_USER_ACCOUNT_SETTINGS_COMMAND("#change_user_settings"),
     RECEIVE_MESSAGE_COMMAND("#receive_message"),
     UNSUPPORTED_COMMAND("#unsupported_command");
@@ -28,5 +30,14 @@ public enum Command {
 
     public String getCommand() {
         return command;
+    }
+
+    public static Command getCommandByValue(String command) {
+        for(Command c : Command.values()) {
+            if(c.getCommand().equals(command)) {
+                return c;
+            }
+        }
+        return null;
     }
 }
