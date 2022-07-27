@@ -1,5 +1,6 @@
 package aq.koptev.server.sevicies.account;
 
+import aq.koptev.server.models.User;
 import aq.koptev.server.sevicies.dbconnect.DBConnectURL;
 import aq.koptev.server.sevicies.dbconnect.DBConnector;
 import aq.koptev.server.sevicies.dbconnect.SQLiteConnector;
@@ -23,12 +24,12 @@ public class SimpleAccountService implements AccountService {
         String newLogin = null;
         String oldPassword = null;
         String newPassword = null;
-        String sqlSelectNewLogin = "SELECT login FROM Users WHERE login = ?";
         if(settings.split("\\s+", 4).length > 3) {
             oldLogin = settings.split("\\s+", 4)[0];
             newLogin = settings.split("\\s+", 4)[1];
             oldPassword = settings.split("\\s+", 4)[2];
             newPassword = settings.split("\\s+", 4)[3];
+            String sqlSelectNewLogin = "SELECT login FROM Users WHERE login = '?'";
             try(Connection connection = connector.getConnection(DBConnectURL.CHAT_DB.getURL());
                     PreparedStatement preparedStatement = connector.getPreparedStatement(connection, sqlSelectNewLogin)) {
                 preparedStatement.setString(1, newLogin);
@@ -39,7 +40,7 @@ public class SimpleAccountService implements AccountService {
                     preparedStatement.setString(1, newLogin);
                     preparedStatement.setString(2, newPassword);
                     preparedStatement.setString(3, oldLogin);
-                    preparedStatement.executeUpdate();
+                    preparedStatement.executeUpdate(sqlUpdateUser);
                     return true;
                 } else {
                     return false;
@@ -56,6 +57,7 @@ public class SimpleAccountService implements AccountService {
             newLogin = settings.split("\\s+", 3)[1];
             oldPassword = settings.split("\\s+", 3)[2];
             newPassword = "";
+            String sqlSelectNewLogin = "SELECT login FROM Users WHERE login = '?'";
             try(Connection connection = connector.getConnection(DBConnectURL.CHAT_DB.getURL());
                 PreparedStatement preparedStatement = connector.getPreparedStatement(connection, sqlSelectNewLogin)) {
                 preparedStatement.setString(1, newLogin);

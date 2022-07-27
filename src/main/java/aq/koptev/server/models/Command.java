@@ -16,6 +16,7 @@ public enum Command {
     USER_CONNECT_COMMAND("#user_connected"),
     USER_DISCONNECT_COMMAND("#user_disconected"),
     GET_CONNECTED_USERS_COMMAND("#get_connected_users"),
+    GET_CONNECTED_USER_COMMAND("#get_connected_user"),
     CHANGE_USER_ACCOUNT_SETTINGS_COMMAND("#change_user_settings");
     private String command;
 

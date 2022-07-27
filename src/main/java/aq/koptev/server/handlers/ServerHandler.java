@@ -44,7 +44,8 @@ public class ServerHandler implements Handler {
     }
 
     private void sendConnectedUserLogin() throws IOException{
-        sendMessage(Command.OK_AUTHENTICATION_COMMAND, user.getLogin());
+        String message = String.format("%s %s", user.getLogin(), user.getPassword());
+        sendMessage(Command.GET_CONNECTED_USER_COMMAND, message);
     }
 
     private void processDisconnectHandler() {
