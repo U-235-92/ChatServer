@@ -14,6 +14,7 @@ public class ServerHandler implements Handler {
     private DataOutputStream outputStream;
     private User user;
     private Identifier identifier;
+    private MetaConnector metaConnector;/////////////////////////////////////
 
     public ServerHandler(Server server, Socket clientSocket) throws IOException {
         this.server = server;
@@ -28,6 +29,8 @@ public class ServerHandler implements Handler {
         Thread thread = new Thread(() -> {
             try {
                 identifier.identificationProcess(inputStream);
+                metaConnector = new MetaConnector(server, user, inputStream);/////////////////////////////////////////
+                metaConnector.processConnectMeta();////////////////////////////////////////////////////////////////////////
 //                sendConnectedUser();
                 waitMessage();
             } catch (IOException e) {

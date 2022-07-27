@@ -87,6 +87,10 @@ public class Identifier {
                 handler.registrationHandler();
                 String message = String.format("%s %s", login, password);
                 handler.sendMessage(Command.OK_AUTHENTICATION_COMMAND, message);
+                ///
+//                handler.sendMessage(Command.GET_CONNECTED_USER_COMMAND, String.format("%s %s", login, password));
+//                handler.sendMessage(Command.USER_CONNECT_COMMAND, String.format("Пользователь %s вошел в чат", login));
+//                handler.sendMessage(Command.GET_CONNECTED_USERS_COMMAND, null);
                 return true;
             }
         }

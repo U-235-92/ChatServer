@@ -18,6 +18,7 @@ public enum Command {
     GET_CONNECTED_USERS_COMMAND("#get_connected_users"),
     GET_CONNECTED_USER_COMMAND("#get_connected_user"),
     CHANGE_USER_ACCOUNT_SETTINGS_COMMAND("#change_user_settings"),
+    RECEIVE_MESSAGE_COMMAND("#receive_message"),
     UNSUPPORTED_COMMAND("#unsupported_command");
     private String command;
 
