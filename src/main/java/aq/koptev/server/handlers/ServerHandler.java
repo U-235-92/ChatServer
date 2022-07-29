@@ -61,6 +61,7 @@ public class ServerHandler implements Handler {
         }
     }
 
+
     @Override
     public synchronized void waitMessage() throws IOException {
         while(true) {
